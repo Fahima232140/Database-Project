@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Transportation Booking System</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('/images/img1.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        .title {
+            font-size: 3.8rem;
+            margin-bottom: 1.5rem;
+            color: #ffcc00;
+            text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+        }
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #e0e0e0;
+        }
+        .signup-form {
+            margin-top: 2rem;
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .signup-form input, .signup-form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .signup-form button {
+            background-color: #ff6600;
+            color: #fff;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        .signup-form button:hover {
+            background-color: #ffcc00;
+        }
+        .password-strength {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: red;
+        }
+        .navigation {
+            margin: 20px 0;
+            font-size: 1rem;
+        }
+        .navigation a {
+            margin: 0 15px;
+            color: #ffcc00;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .navigation a:hover {
+            color: #ff6a00;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 20px;
+        }
+        .login-link {
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #ffcc00;
+        }
+        .login-link a {
+            color: #ffcc00;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .login-link a:hover {
+            color: #ff6a00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Sign Up</h1>
+        <p class="subtitle">Please provide the necessary information to create an account.</p>
+
+        <div class="signup-form">
+            <form id="signup-form">
+                <input type="text" name="name" id="name" placeholder="Full Name" required>
+                <input type="email" name="email" id="email" placeholder="Email Address" required>
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                <p class="password-strength" id="password-strength"></p>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="/login">Login Here</a></p>
+        </div>
+
+        <div class="navigation">
+            <a href="/home">Home</a>
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+        </div>
+        <footer class="footer">&copy; 2024 Transportation Booking System. All Rights Reserved.</footer>
+    </div>
+
+<script>
+    document.getElementById("signup-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const password = formData.get("password");
+
+        // ✅ Password Strength Validation
+        if (!isStrongPassword(password)) {
+            alert("⚠️ Password must be at least 8 characters long and include uppercase, lowercase, numbers, and symbols.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/auth/signup", {
+                method: "POST",
+                body: new URLSearchParams(formData),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            });
+
+            const result = await response.json(); // Parse response as JSON
+
+            if (response.ok) {
+                alert(result.message || "✅ Signup successful! Please check your email to verify your account.");
+                window.location.href = "/api/auth/login"; // Redirect after successful signup
+            } else {
+                alert(result.error || "⚠️ An error occurred. Please try again.");
+            }
+        } catch (error) {
+            alert("⚠️ Network error. Please check your connection.");
+        }
+    });
+
+    // ✅ Password Strength Checker
+    function isStrongPassword(password) {
+        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        return strongPasswordRegex.test(password);
+    }
+
+    // ✅ Live Password Strength Indicator
+    document.getElementById("password").addEventListener("input", function () {
+        const password = this.value;
+        const strengthText = document.getElementById("password-strength");
+
+        if (password.length < 8) {
+            strengthText.textContent = "Weak: Password too short";
+            strengthText.style.color = "red";
+        } else if (!/(?=.*[A-Z])/.test(password)) {
+            strengthText.textContent = "Medium: Add an uppercase letter";
+            strengthText.style.color = "orange";
+        } else if (!/(?=.*\d)/.test(password)) {
+            strengthText.textContent = "Medium: Add a number";
+            strengthText.style.color = "orange";
+        } else if (!/(?=.*[\W_])/.test(password)) {
+            strengthText.textContent = "Strong: Add a symbol";
+            strengthText.style.color = "yellow";
+        } else {
+            strengthText.textContent = "Very Strong!";
+            strengthText.style.color = "green";
+        }
+    });
+</script>
+
+</body>
+</html>
