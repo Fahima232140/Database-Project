@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/styles/admin.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome, Admin</h1>
+        <button onclick="logout()">Logout</button>
+    </header>
+
+    <section>
+        <h2>Dashboard</h2>
+        <ul>
+            <li><a href="/admin/users">Manage Users</a></li>
+            <li><a href="/admin/products">Manage Products</a></li>
+            <li><a href="/admin/orders">Manage Orders</a></li>
+        </ul>
+    </section>
+
+    <script>
+        function logout() {
+            fetch("/api/admin/logout", { method: "POST" })
+                .then(() => window.location.href = "/admin/login");
+        }
+    </script>
+</body>
+</html>

@@ -77,7 +77,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
-  }));
+}));
+
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/admin", adminRoutes);
+
+
+app.get("/admin", (req, res) => res.render("admin"));
+app.get("/admin/login", (req, res) => res.render("adminLogin"));
+
 
 console.log("📧 Email User:", process.env.EMAIL_USER);
 console.log("🔑 Email Pass:", process.env.EMAIL_PASS ? "Loaded" : "Not Loaded");

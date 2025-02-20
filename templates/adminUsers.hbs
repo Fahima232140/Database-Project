@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Users</title>
+</head>
+<body>
+    <h1>Users List</h1>
+    <input type="text" id="searchInput" placeholder="Search users..." onkeyup="searchUsers()">
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Actions</th>
+            <th>Actions</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {{#each users}}
+        <tr>
+            <td><input type="text" value="{{this.name}}" disabled></td>
+            <td><input type="text" value="{{this.email}}" disabled></td>
+            <td><input type="password" value="********" disabled></td>
+            <td>
+                <button onclick="toggleEdit(this, '{{this._id}}')">Edit</button>
+            </td>
+            <td>
+                <form action="/admin/users/delete/{{this._id}}" method="POST">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+            
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+<script>
+    function toggleEdit(button, userId) {
+        let row = button.parentElement.parentElement;
+        let inputs = row.querySelectorAll("input");
+        let isEditing = button.innerText === "Save";
+
+        if (isEditing) {
+            // Save Data
+            fetch(`/admin/users/edit/${userId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: inputs[0].value,
+                    email: inputs[1].value,
+                    password: inputs[2].value !== "********" ? inputs[2].value : null
+                })
+            }).then(() => {
+                button.innerText = "Edit";
+                inputs.forEach(input => input.disabled = true);
+            });
+        } else {
+            // Enable Editing
+            button.innerText = "Save";
+            inputs.forEach(input => input.disabled = false);
+        }
+    }
+
+    function searchUsers() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let rows = document.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let name = row.cells[0].querySelector("input").value.toLowerCase();
+            let email = row.cells[1].querySelector("input").value.toLowerCase();
+            row.style.display = name.includes(input) || email.includes(input) ? "" : "none";
+        });
+    }
+</script>
+
+    <form action="/admin/logout" method="POST">
+    <button type="submit">Logout</button>
+    </form>
+</body>
+</html>
