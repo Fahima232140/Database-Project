@@ -34,8 +34,15 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({ error: "Invalid credentials!" });
         }
 
-        const token = jwt.sign({ adminId: admin._id }, process.env.JWT_SECRET, { expiresIn: "2h" });
-        res.cookie("adminToken", token, { httpOnly: true, secure: true, sameSite: "Strict" });
+        const token = jwt.sign({ adminId: admin._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        res.cookie("adminToken", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // Secure in production
+            sameSite: "Strict",
+            expires: 0, // 🔹 Make cookie session-based (deleted when browser closes)
+        });
+
 
         console.log("✅ Login Successful, Redirecting to Users...");
         res.redirect("/admin/users");
@@ -45,6 +52,7 @@ router.post("/login", async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
 
 // ✅ Fetch All Users (Protected)
 router.get("/users", adminAuth, async (req, res) => {

@@ -5,42 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 10px;
-            border: none;
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-    </style>
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: url('/images/img1.png') no-repeat center center fixed;
+        background-size: cover;
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .container {
+        text-align: center;
+        max-width: 400px;
+        padding: 40px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+    h2 {
+        color: #ffcc00;
+        text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+    }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    button {
+        background-color: #ff6600;
+        color: #fff;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+        width: 100%;
+        border-radius: 5px;
+    }
+    button:hover {
+        background-color: #ffcc00;
+    }
+    .navigation {
+        margin-top: 15px;
+    }
+    .navigation a {
+        color: #ffcc00;
+        text-decoration: none;
+        font-weight: bold;
+        transition: color 0.3s ease;
+    }
+    .navigation a:hover {
+        color: #ff6a00;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">

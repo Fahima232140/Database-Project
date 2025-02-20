@@ -1,36 +1,52 @@
 const jwt = require("jsonwebtoken");
-const Admin = require("../models/Admin"); // Import the Admin model
+const Admin = require("../models/Admin");
+
+let serverRestartTime = Date.now(); // 🔹 Track server start time
 
 const adminAuth = async (req, res, next) => {
     try {
         console.log("🛠 Checking Admin Authentication...");
 
-        // Get token from cookies or Authorization header
-        const token = req.cookies?.adminToken || req.header("Authorization")?.replace("Bearer ", "");
+        const token = req.cookies?.adminToken;
         console.log("🔑 Received Token:", token);
 
         if (!token) {
-            console.log("⚠️ No token provided!");
-            return res.status(401).json({ error: "⚠️ Unauthorized! No token provided." });
+            console.log("⚠️ No token! Redirecting to login...");
+            return res.redirect("/admin/login");
         }
 
-        // Verify the token
+        // Verify and decode the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log("✅ Token Decoded:", decoded);
 
-        // Fetch admin from database
+        // 🔹 Invalidate tokens issued before the server restart
+        if (decoded.iat * 1000 < serverRestartTime) {
+            console.log("⛔ Token invalid due to server restart.");
+            res.clearCookie("adminToken");
+            return res.redirect("/admin/login");
+        }
+
+        // 🔹 Check token expiry manually (to ensure it's actually expired)
+        if (decoded.exp * 1000 < Date.now()) {
+            console.log("⛔ Token expired.");
+            res.clearCookie("adminToken");
+            return res.redirect("/admin/login");
+        }
+
         const admin = await Admin.findById(decoded.adminId);
 
         if (!admin) {
             console.log("⛔ Access Denied! Admin not found.");
-            return res.status(403).json({ error: "⚠️ Access denied! Admin not found." });
+            res.clearCookie("adminToken");
+            return res.redirect("/admin/login");
         }
 
-        req.admin = admin; // Attach admin details to request object
+        req.admin = admin;
         next();
     } catch (error) {
         console.log("❌ Invalid Token:", error.message);
-        return res.status(403).json({ error: "⚠️ Invalid or expired token!" });
+        res.clearCookie("adminToken");
+        return res.redirect("/admin/login");
     }
 };
 
