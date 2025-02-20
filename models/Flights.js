@@ -7,6 +7,7 @@ const flightSchema = new mongoose.Schema({
     date: { type: Date, required: true },
     price: { type: Number, required: true },
     flightNumber: { type: String, required: true, unique: true },
+    passengers: { type: Number, required: true }, // Add passengers field
     availability: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
 });

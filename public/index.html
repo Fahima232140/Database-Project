@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking and Cart</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .flight-card { border: 1px solid #ddd; padding: 16px; margin-bottom: 10px; }
+        button { padding: 8px 12px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:disabled { background-color: grey; }
+
+        /* Cart Styling */
+        #cartContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background-color: #f9f9f9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        #cartContainer h2 { margin-top: 0; }
+        #cartContainer p { margin: 10px 0; }
+        #checkout { width: 100%; }
+
+        /* Make room for cart */
+        main {
+            margin-right: 300px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        <h1>Search and Book Flights</h1>
+
+        <!-- Search Flights Form -->
+        <form id="filterFlightsForm">
+            <label for="departure">Departure:</label>
+            <input type="text" name="departure" id="filterDeparture" placeholder="Enter departure location">
+        
+            <label for="destination">Destination:</label>
+            <input type="text" name="destination" id="filterDestination" placeholder="Enter destination location">
+        
+            <label for="flightNumber">Flight Number:</label>
+            <input type="text" name="flightNumber" id="filterFlightNumber" placeholder="Enter flight number">
+        
+            <!-- Updated filter fields -->
+            <label for="minDate">Min Date:</label>
+            <input type="date" name="minDate" id="filterMinDate">
+        
+            <label for="maxDate">Max Date:</label>
+            <input type="date" name="maxDate" id="filterMaxDate">
+        
+            <label for="minPrice">Min Price:</label>
+            <input type="number" name="minPrice" id="filterMinPrice" placeholder="Enter min price">
+        
+            <label for="maxPrice">Max Price:</label>
+            <input type="number" name="maxPrice" id="filterMaxPrice" placeholder="Enter max price">
+        
+            <label for="minPassengers">Min Passengers:</label>
+            <input type="number" name="minPassengers" id="filterMinPassengers" placeholder="Min passengers">
+        
+            <label for="maxPassengers">Max Passengers:</label>
+            <input type="number" name="maxPassengers" id="filterMaxPassengers" placeholder="Max passengers">
+        
+            <button type="submit">Search Flights</button>
+        </form>
+        
+        
+
+        <!-- List of Flights -->
+        <h2>Available Flights</h2>
+        <ul id="flightList"></ul>
+    </main>
+
+    <!-- Cart Section -->
+    <div id="cartContainer">
+        <h2>Your Cart</h2>
+        <div id="cart"></div>
+        <button id="checkout" disabled>Buy Flights</button>
+    </div>
+
+    <script>
+        let cart = [];
+
+        // Fetch and display flights based on search criteria
+        document.getElementById('filterFlightsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Collect filter criteria
+    const departure = document.getElementById('filterDeparture').value;
+    const destination = document.getElementById('filterDestination').value;
+    const flightNumber = document.getElementById('filterFlightNumber').value;
+    const minDate = document.getElementById('filterMinDate').value;
+    const maxDate = document.getElementById('filterMaxDate').value;
+    const minPrice = document.getElementById('filterMinPrice').value;
+    const maxPrice = document.getElementById('filterMaxPrice').value;
+    const minPassengers = document.getElementById('filterMinPassengers').value;
+    const maxPassengers = document.getElementById('filterMaxPassengers').value;
+
+    // Build query string
+    const query = new URLSearchParams({
+        ...(departure && { departure }),
+        ...(destination && { destination }),
+        ...(flightNumber && { flightNumber }),
+        ...(minDate && { minDate }),
+        ...(maxDate && { maxDate }),
+        ...(minPrice && { minPrice }),
+        ...(maxPrice && { maxPrice }),
+        ...(minPassengers && { minPassengers }),
+        ...(maxPassengers && { maxPassengers })
+    }).toString();
+
+    // Fetch filtered flights
+    const response = await fetch(`/api/flights?${query}`);
+    const result = await response.json();
+
+    if (result.success) {
+        const flightList = document.getElementById('flightList');
+        flightList.innerHTML = '';
+
+        result.data.forEach(flight => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="flight-card">
+                    <h3>Flight: ${flight.flightNumber}</h3>
+                    <p>From: ${flight.departure} To: ${flight.destination}</p>
+                    <p>Date: ${new Date(flight.date).toISOString().split('T')[0]}</p>
+                    <p>Price: $${flight.price}</p>
+                    <p>Passengers: ${flight.passengers || 'Not specified'}</p>
+                    <button onclick="addToCart('${flight.flightNumber}', ${flight.price})">Add to Cart</button>
+                </div>
+            `;
+            flightList.appendChild(li);
+        });
+
+    } else {
+        alert('Error fetching flights: ' + result.error);
+    }
+});
+
+
+        // Add flight to cart
+        function addToCart(flightNumber, price) {
+            const cartItem = { flightNumber, price };
+            cart.push(cartItem);
+            updateCart();
+        }
+
+        // Update cart view
+        function updateCart() {
+            const cartContainer = document.getElementById('cart');
+            cartContainer.innerHTML = '';
+            let totalPrice = 0;
+
+            cart.forEach((flight, index) => {
+                totalPrice += flight.price;
+                const cartItem = document.createElement('div');
+                cartItem.innerHTML = `
+                    <p>Flight ${flight.flightNumber}: $${flight.price}</p>
+                    <button onclick="removeFromCart(${index})">Remove</button>
+                `;
+                cartContainer.appendChild(cartItem);
+            });
+
+            // Enable or disable checkout button based on cart content
+            document.getElementById('checkout').disabled = cart.length === 0;
+
+            // Show total price
+            if (cart.length > 0) {
+                const totalDiv = document.createElement('div');
+                totalDiv.innerHTML = `<p><strong>Total Price: $${totalPrice}</strong></p>`;
+                cartContainer.appendChild(totalDiv);
+            }
+        }
+
+        // Remove flight from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        // Checkout button handler
+        document.getElementById('checkout').addEventListener('click', () => {
+            alert("Flights purchased successfully!");
+            cart = [];
+            updateCart();
+        });
+    </script>
+
+</body>
+</html>
