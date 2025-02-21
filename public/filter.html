@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Flight</title>
+</head>
+<body>
+    <h1>Search Flights</h1>
+    <form id="filterFlightsForm">
+        <label for="departure">Departure:</label>
+        <input type="text" name="departure" id="filterDeparture" placeholder="Enter departure location">
+    
+        <label for="destination">Destination:</label>
+        <input type="text" name="destination" id="filterDestination" placeholder="Enter destination location">
+    
+        <label for="flightNumber">Flight Number:</label>
+        <input type="text" name="flightNumber" id="filterFlightNumber" placeholder="Enter flight number">
+    
+        <button type="submit">Search Flights</button>
+    </form>
+    
+    <ul id="flightList"></ul>
+    
+    <script>
+        document.getElementById('filterFlightsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+    
+            // Collect filter criteria
+            const departure = document.getElementById('filterDeparture').value;
+            const destination = document.getElementById('filterDestination').value;
+            const flightNumber = document.getElementById('filterFlightNumber').value;
+    
+            // Build query string
+            const query = new URLSearchParams({
+                ...(departure && { departure }),
+                ...(destination && { destination }),
+                ...(flightNumber && { flightNumber })
+            }).toString();
+    
+            // Fetch filtered flights
+            const response = await fetch(`/api/flights?${query}`);
+            const result = await response.json();
+    
+            if (result.success) {
+                const flightList = document.getElementById('flightList');
+                flightList.innerHTML = '';
+    
+                result.data.forEach(flight => {
+                    const li = document.createElement('li');
+                    li.textContent = `Flight Number: ${flight.flightNumber}, Departure: ${flight.departure}, Destination: ${flight.destination}, Price: $${flight.price}`;
+                    flightList.appendChild(li);
+                });
+            } else {
+                alert('Error fetching flights: ' + result.error);
+            }
+        });
+    </script>
+    
+</body>
+</html>

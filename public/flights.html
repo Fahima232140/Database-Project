@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Search Flights</h2>
+    <form id="flightForm">
+        <div class="form-group">
+            <label for="departure">Departure (IATA code):</label>
+            <input type="text" id="departure" name="departure">
+        </div>
+        <div class="form-group">
+            <label for="destination">Destination (IATA code):</label>
+            <input type="text" id="destination" name="destination">
+        </div>
+        <div class="form-group">
+            <label for="airline">Airline (IATA code):</label>
+            <input type="text" id="airline" name="airline">
+        </div>
+        <div class="form-group">
+            <label for="flight_number">Flight Number:</label>
+            <input type="text" id="flight_number" name="flight_number">
+        </div>
+        <button type="button" onclick="searchFlights()">Search Flights</button>
+    </form>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    async function searchFlights() {
+        const departure = document.getElementById('departure').value.trim();
+        const destination = document.getElementById('destination').value.trim();
+        const airline = document.getElementById('airline').value.trim();
+        const flight_number = document.getElementById('flight_number').value.trim();
+
+        // Build query string
+        const params = new URLSearchParams();
+
+        if (departure) params.append('departure', departure);
+        if (destination) params.append('destination', destination);
+        if (airline) params.append('airline', airline);
+        if (flight_number) params.append('flight_number', flight_number);
+
+        // Log the query string to check if it is correctly formed
+        console.log(`Query String: /api/flights?${params.toString()}`);
+
+        try {
+            const response = await fetch(`/api/flights?${params.toString()}`);
+            const data = await response.json();
+
+            if (data.success) {
+                let resultHtml = '<h3>Flight Results:</h3>';
+                data.data.forEach(flight => {
+                    resultHtml += `
+                        <div>
+                            <p><strong>Flight Number:</strong> ${flight.flight.iata}</p>
+                            <p><strong>Airline:</strong> ${flight.airline.name}</p>
+                            <p><strong>Departure:</strong> ${flight.departure.iata} (${flight.departure.scheduled})</p>
+                            <p><strong>Arrival:</strong> ${flight.arrival.iata} (${flight.arrival.scheduled})</p>
+                        </div>
+                        <hr>
+                    `;
+                });
+                document.getElementById('result').innerHTML = resultHtml;
+            } else {
+                document.getElementById('result').innerHTML = '<p>No flights found.</p>';
+            }
+        } catch (error) {
+            console.error('Error fetching flights:', error);
+            document.getElementById('result').innerHTML = '<p>Error fetching flights.</p>';
+        }
+    }
+
+
+</script>
+
+</body>
+</html>
