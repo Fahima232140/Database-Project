@@ -153,7 +153,7 @@
 
             if (response.ok) {
                 localStorage.setItem("accessToken", data.accessToken);
-                window.location.href = data.redirectUrl || "/booking";
+                window.location.href = data.redirectUrl || "/dashboard";
             } else {
                 errorMessage.textContent = data.error || "⚠️ Login failed! Please try again.";
             }

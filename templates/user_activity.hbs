@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('/images/img1.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.6);
+            backdrop-filter: blur(12px);
+            text-align: center;
+        }
+        .title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #ffcc00;
+            text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            color: #ffcc00;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background: rgba(255, 102, 0, 0.7);
+            color: white;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: #ff6600;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #ffcc00;
+        }
+        .timer {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #e0e0e0;
+        }
+        .message {
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">User Dashboard</h1>
+        
+        <div class="timer">Time Spent: <span id="time-spent">0</span> seconds</div>
+
+        <div class="section">
+            <h2>Booking History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Departure</th>
+                        <th>Destination</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="booking-history">
+                    {{#each bookings}}
+                        <tr>
+                            <td>{{this._id}}</td>
+                            <td>{{this.departure}}</td>
+                            <td>{{this.destination}}</td>
+                            <td>{{this.date}}</td>
+                        </tr>
+                    {{else}}
+                        <tr><td colspan="4">No bookings found</td></tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Payment History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Cardholder</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="payment-history">
+                    {{#each payments}}
+                        <tr>
+                            <td>{{this._id}}</td>
+                            <td>{{this.cardholder}}</td>
+                            <td>{{this.amount}}</td>
+                            <td>{{this.createdAt}}</td>
+                        </tr>
+                    {{else}}
+                        <tr><td colspan="4">No payments found</td></tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Change Password</h2>
+            <input type="password" id="current-password" placeholder="Current Password">
+            <input type="password" id="new-password" placeholder="New Password">
+            <button onclick="changePassword()">Change Password</button>
+            <p id="password-message" class="message"></p>
+        </div>
+    </div>
+
+<script>
+    // Timer
+    let seconds = 0;
+    setInterval(() => {
+        seconds++;
+        document.getElementById('time-spent').textContent = seconds;
+    }, 1000);
+
+    // Change Password Function
+    async function changePassword() {
+        const oldPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const messageElement = document.getElementById('password-message');
+
+        if (!oldPassword || !newPassword) {
+            messageElement.textContent = "⚠️ Please fill in both fields.";
+            messageElement.style.color = "red";
+            return;
+        }
+
+        try {
+            const response = await fetch('/changePassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',  // ✅ Important for authentication
+                body: JSON.stringify({ oldPassword, newPassword }) // ✅ Changed "currentPassword" to "oldPassword"
+            });
+
+            const data = await response.json();
+            messageElement.textContent = data.message;
+
+            if (response.ok) {
+                messageElement.style.color = "green";
+                setTimeout(() => { window.location.href = '/login'; }, 3000);
+            } else {
+                messageElement.style.color = "red";
+            }
+        } catch (error) {
+            messageElement.textContent = "❌ Error changing password.";
+            messageElement.style.color = "red";
+        }
+    }
+</script>
+
+</body>
+</html>
