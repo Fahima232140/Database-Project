@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity</title>
+    <style>
+        body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: url('/images/img1.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    text-align: center;
+    max-width: 900px;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+h1.title {
+    font-size: 3.8rem;
+    margin-bottom: 1.5rem;
+    color: #ffcc00;
+    text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+}
+
+h2 {
+    color: #ffcc00;
+}
+
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ffcc00;
+    text-align: center;
+    color: white;
+}
+
+th {
+    background-color: rgba(255, 102, 0, 0.8);
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">User Activity</h1>
+
+        <h2>Bookings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Passport</th>
+                    <th>Departure</th>
+                    <th>Destination</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="bookingsBody">
+                <!-- Bookings data will be inserted here dynamically -->
+            </tbody>
+        </table>
+
+        <h2>Payments</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cardholder</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Transaction ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="paymentsBody">
+                <!-- Payments data will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const email = "fahimaahmadi488@gmail.com"; // Hardcoded for now, you can replace it dynamically
+            try {
+                const response = await fetch(`/api/user/history/${email}`);
+                const data = await response.json();
+
+                // Populate Bookings Table
+                const bookingsBody = document.getElementById("bookingsBody");
+                bookingsBody.innerHTML = data.bookings.map(booking => `
+                    <tr>
+                        <td>${booking.name}</td>
+                        <td>${booking.email}</td>
+                        <td>${booking.passport}</td>
+                        <td>${booking.departure}</td>
+                        <td>${booking.destination}</td>
+                        <td>${new Date(booking.date).toLocaleDateString()}</td>
+                    </tr>
+                `).join("");
+
+                // Populate Payments Table
+                const paymentsBody = document.getElementById("paymentsBody");
+                paymentsBody.innerHTML = data.payments.map(payment => `
+                    <tr>
+                        <td>${payment.cardholder}</td>
+                        <td>$${payment.amount}</td>
+                        <td>${payment.currency}</td>
+                        <td>${payment.transactionId || "N/A"}</td>
+                        <td>${payment.status}</td>
+                    </tr>
+                `).join("");
+
+            } catch (error) {
+                console.error("❌ Error fetching user history:", error);
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Users</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('/images/img1.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #ffcc00;
+            text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #searchInput {
+            width: 90%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ffcc00;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ffcc00;
+        }
+        button {
+            background-color: #ff6600;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #ffcc00;
+        }
+        .logout-button {
+            background-color: red;
+            margin-top: 20px;
+        }
+        .logout-button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Users List</h1>
+        <input type="text" id="searchInput" placeholder="Search users..." onkeyup="searchUsers()">
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Actions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each users}}
+                <tr>
+                    <td><input type="text" value="{{this.name}}" disabled></td>
+                    <td><input type="text" value="{{this.email}}" disabled></td>
+                    <td><input type="password" value="********" disabled></td>
+                    <td>
+                        <button onclick="toggleEdit(this, '{{this._id}}')">Edit</button>
+                    </td>
+                    <td>
+                        <form action="/admin/users/delete/{{this._id}}" method="POST">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <form action="/admin/logout" method="POST">
+            <button type="submit" class="logout-button">Logout</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleEdit(button, userId) {
+            let row = button.parentElement.parentElement;
+            let inputs = row.querySelectorAll("input");
+            let isEditing = button.innerText === "Save";
+
+            if (isEditing) {
+                // Save Data
+                fetch(`/admin/users/edit/${userId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: inputs[0].value,
+                        email: inputs[1].value,
+                        password: inputs[2].value !== "********" ? inputs[2].value : null
+                    })
+                }).then(() => {
+                    button.innerText = "Edit";
+                    inputs.forEach(input => input.disabled = true);
+                });
+            } else {
+                // Enable Editing
+                button.innerText = "Save";
+                inputs.forEach(input => input.disabled = false);
+            }
+        }
+
+        function searchUsers() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(row => {
+                let name = row.cells[0].querySelector("input").value.toLowerCase();
+                let email = row.cells[1].querySelector("input").value.toLowerCase();
+                row.style.display = name.includes(input) || email.includes(input) ? "" : "none";
+            });
+        }
+
+        window.addEventListener("beforeunload", function () {
+        document.cookie = "adminToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        });
+
+    </script>
+</body>
+</html>
