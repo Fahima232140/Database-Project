@@ -1,99 +1,55 @@
-const Flight = require('../models/Flights');
+const axios = require('axios');
 
-// GET handler for fetching flights with filtering
+// Controller to get flights from Aviationstack API with filters
 exports.getFlights = async (req, res) => {
     try {
-        let filters = {};
+        const { departure, destination, airline, flight_number } = req.query;
 
-        const { departure, destination, flightNumber, minDate, maxDate, minPrice, maxPrice, minPassengers, maxPassengers } = req.query;
+        // Build the API request URL with dynamic query parameters
+        let apiUrl = `http://api.aviationstack.com/v1/flights?access_key=${process.env.AVIATIONSTACK_API_KEY}`;
+        
+        if (departure) apiUrl += `&dep_iata=${departure}`;
+        if (destination) apiUrl += `&arr_iata=${destination}`;
+        if (airline) apiUrl += `&airline_iata=${airline}`;
+        if (flight_number) apiUrl += `&flight_number=${flight_number}`;
 
-        if (departure) filters.departure = new RegExp(departure, 'i');
-        if (destination) filters.destination = new RegExp(destination, 'i');
-        if (flightNumber) filters.flightNumber = flightNumber;
-        if (minDate) filters.date = { ...filters.date, $gte: new Date(minDate) };
-        if (maxDate) filters.date = { ...filters.date, $lte: new Date(maxDate) };
-        if (minPrice) filters.price = { ...filters.price, $gte: Number(minPrice) };
-        if (maxPrice) filters.price = { ...filters.price, $lte: Number(maxPrice) };
-        if (minPassengers) filters.passengers = { ...filters.passengers, $gte: Number(minPassengers) };
-        if (maxPassengers) filters.passengers = { ...filters.passengers, $lte: Number(maxPassengers) };
+        // Make a GET request to the Aviationstack API
+        const response = await axios.get(apiUrl);
 
-        const flights = await Flight.find(filters);
+        // Check if the response contains flight data
+        const flights = response.data.data;
 
-        if (flights.length) {
+        if (flights && flights.length) {
             res.json({ success: true, data: flights });
         } else {
-            res.json({ success: false, error: 'No flights found' });
+            res.json({ success: false, message: 'No flights found for the given parameters' });
         }
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Server Error' });
+        console.error('Error fetching flights:', error.message);
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
-// GET handler for fetching a flight by ID
-exports.getFlightById = async (req, res) => {
+// Controller to get flight by flight number
+exports.getFlightByNumber = async (req, res) => {
     try {
-        const flight = await Flight.findById(req.params.id);
-        if (!flight) {
-            return res.status(404).json({ success: false, error: 'Flight not found' });
-        }
-        res.json({ success: true, data: flight });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Server Error' });
-    }
-};
+        const flightNumber = req.params.flightNumber;
 
-// POST handler for creating a new flight
-exports.createFlight = async (req, res) => {
-    try {
-        const { flightNumber, departure, destination, date, price, passengers } = req.body;
+        // Construct the API request URL
+        const apiUrl = `http://api.aviationstack.com/v1/flights?access_key=${process.env.AVIATIONSTACK_API_KEY}&flight_number=${flightNumber}`;
 
-        if (!flightNumber || !departure || !destination || !date || !price || !passengers) {
-            return res.status(400).json({ success: false, error: 'All fields are required' });
-        }
+        // Make a GET request to the Aviationstack API
+        const response = await axios.get(apiUrl);
+        
+        const flight = response.data.data;
 
-        const newFlight = new Flight({
-            flightNumber,
-            departure,
-            destination,
-            date: new Date(date),
-            price: Number(price),
-            passengers: Number(passengers)
-        });
-
-        const savedFlight = await newFlight.save();
-
-        res.status(201).json({ success: true, data: savedFlight });
-    } catch (error) {
-        if (error.code === 11000) {
-            res.status(400).json({ success: false, error: 'Flight number must be unique' });
+        if (flight && flight.length) {
+            res.json({ success: true, data: flight });
         } else {
-            res.status(500).json({ success: false, error: 'Server Error' });
+            res.status(404).json({ success: false, message: 'Flight not found' });
         }
-    }
-};
-
-// PUT handler for updating a flight by ID
-exports.updateFlightById = async (req, res) => {
-    try {
-        const updatedFlight = await Flight.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!updatedFlight) {
-            return res.status(404).json({ success: false, error: 'Flight not found' });
-        }
-        res.json({ success: true, data: updatedFlight });
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Server Error' });
-    }
-};
-
-// DELETE handler for deleting a flight by ID
-exports.deleteFlightById = async (req, res) => {
-    try {
-        const deletedFlight = await Flight.findByIdAndDelete(req.params.id);
-        if (!deletedFlight) {
-            return res.status(404).json({ success: false, error: 'Flight not found' });
-        }
-        res.json({ success: true, data: 'Flight deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Server Error' });
+        console.error('Error fetching flight:', error.message);
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };

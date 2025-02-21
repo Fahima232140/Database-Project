@@ -1,22 +1,22 @@
-require("dotenv").config();  // ✅ Load environment variables at the top!
+require("dotenv").config();  // ✅ Load environment variables
 
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
-const mongoose = require('./mongo');
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // ✅ Ensure Stripe API key is loaded AFTER dotenv
+const mongoose = require('./mongo'); // MongoDB connection setup
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // ✅ Stripe API key
 
-// Logging Stripe key
+// Logging Stripe key for debugging
 console.log("🔑 STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY);
 
-// Create express app
+// Create an Express app
 const app = express();
 
-// Middleware configuration
+// Middleware setup
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Define the frontend URL
     credentials: true,
 }));
 app.use(express.urlencoded({ extended: true }));
@@ -24,64 +24,44 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
 
-// Logger for incoming requests
+// Logger middleware for incoming requests
 app.use((req, res, next) => {
     console.log(`[${req.method}] ${req.url}`);
     next();
 });
 
-// Routes
+// Import and use the routes
+const flightRoutes = require('./routes/flightRoutes');
 const checkSessionRoutes = require('./routes/checkSessionRoutes');
 const paymentRoutes = require("./routes/paymentRoutes");
 const filterRoutes = require("./routes/filter");
-const flightRoutes = require('./routes/flightsRoutes'); // Ensure path is correct
 app.use('/api/flights', flightRoutes);
-
-// Mounting API routes
-app.use('/api/auth', checkSessionRoutes); // Available at /api/auth/check-session
-app.use('/api/payment', paymentRoutes); 
+app.use('/api/auth', checkSessionRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/filter', filterRoutes);
 
-// Dynamic imports for routes (error-handling)
-let refreshTokenRoutes, logoutRoutes, authRoutes, bookingRoutes;
-try {
-    refreshTokenRoutes = require('./routes/refreshTokenRoutes');
-    logoutRoutes = require('./routes/logoutRoutes');
-    authRoutes = require('./routes/authRoutes');
-    bookingRoutes = require('./routes/bookingRoutes');
-} catch (err) {
-    console.error("❌ Route import failed:", err);
-    process.exit(1); // Exit if any route import fails
-}
-
-// Mounting other API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/refresh-token', refreshTokenRoutes);
-app.use('/api/logout', logoutRoutes);
-app.use('/api/booking', bookingRoutes);
-
-// Static files
+// Static files for the public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Handlebars template engine configuration
+// Setup Handlebars as the view engine
 app.set('views', path.join(__dirname, 'templates'));
 app.set('view engine', 'hbs');
 
-// Route for rendering pages
+// Define routes for rendering HTML pages
 app.get('/signup', (req, res) => res.render('signup'));
 app.get('/home', (req, res) => res.render('home'));
 app.get('/login', (req, res) => res.render('login'));
-app.get('/booking', (req, res) => res.render('booking')); // Booking page
-app.get('/payment', (req, res) => res.render('payment')); // Payment page
-app.get('/about', (req, res) => res.render('about')); // About page
-app.get('/contact', (req, res) => res.render('contact')); // Contact page
+app.get('/booking', (req, res) => res.render('booking'));
+app.get('/payment', (req, res) => res.render('payment'));
+app.get('/about', (req, res) => res.render('about'));
+app.get('/contact', (req, res) => res.render('contact'));
 
 // Root route
 app.get('/', (req, res) => {
     res.send('Server is running...');
 });
 
-// Log Email credentials
+// Log email credentials for debugging
 console.log("📧 Email User:", process.env.EMAIL_USER);
 console.log("🔑 Email Pass:", process.env.EMAIL_PASS ? "Loaded" : "Not Loaded");
 
