@@ -1,24 +1,40 @@
 const express = require("express");
 const router = express.Router();
-const { processPayment } = require("../controllers/paymentController");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const Payment = require("../models/Payment");
 
-// Define payment route
-router.post('/process', async (req, res) => {
+router.post("/process", async (req, res) => {
     try {
-        const { amount, currency } = req.body;
-        console.log(`Processing payment: ${amount} ${currency}`);
+        const { cardholder, amount, currency } = req.body;
 
-        // Simulating a successful payment response
-        res.json({ success: true, message: "Payment processed successfully" });
+        if (!cardholder || !amount) {
+            return res.status(400).json({ error: "Missing payment details" });
+        }
+
+        // Simulating Stripe Payment (or use actual Stripe API)
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount * 100, // Convert to cents
+            currency: currency || "usd",
+            payment_method_types: ["card"],
+        });
+
+        // Save payment details to MongoDB
+        const newPayment = new Payment({
+            cardholder,
+            amount,
+            currency: currency || "usd",
+            transactionId: paymentIntent.id,
+            status: "success"
+        });
+
+        await newPayment.save();
+
+        res.json({ success: true, message: "Payment successful!", transactionId: paymentIntent.id });
+
     } catch (error) {
-        console.error("Payment error:", error);
-        res.status(500).json({ error: "Payment failed." });
+        console.error("Payment Error:", error);
+        res.status(500).json({ success: false, error: "Payment processing failed" });
     }
-});
-
-
-router.get("/", (req, res) => {
-    res.status(200).json({ message: "Payment route is working!" });
 });
 
 module.exports = router;

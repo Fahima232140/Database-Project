@@ -130,32 +130,28 @@
             return true;
         }
 
-      async function processPayment() {
+ async function processPayment() {
     if (!validatePaymentInputs()) return;
 
     const cardholder = document.getElementById("cardholder").value;
-    const cardnumber = document.getElementById("cardnumber").value;
-    const expiry = document.getElementById("expiry").value;
-    const cvv = document.getElementById("cvv").value;
+    const amount = 1000; // Example amount (replace with actual flight price)
+    const currency = "usd";
     const message = document.getElementById("message");
 
     try {
-        // Send payment request
         const response = await fetch("http://localhost:3000/api/payment/process", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: 1000, currency: "usd" })
+            body: JSON.stringify({ cardholder, amount, currency })
         });
 
-        // Parse JSON response
         const data = await response.json();
 
-        // Handle success or failure
         if (response.ok) {
             message.textContent = "Payment successful!";
             message.style.color = "green";
             setTimeout(() => {
-                window.location.href = "/booking"; // Redirect to confirmation page
+                window.location.href = "/booking"; // Redirect after success
             }, 2000);
         } else {
             message.textContent = data.error || "Payment failed.";
@@ -167,6 +163,7 @@
         message.style.color = "red";
     }
 }
+
         function cancelPayment() {
             window.location.href = "/booking"; // Redirect back to booking page
         }
