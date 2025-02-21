@@ -23,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Logger middleware for incoming requests
 app.use((req, res, next) => {
@@ -35,16 +36,18 @@ const flightRoutes = require('./routes/flightRoutes');
 const checkSessionRoutes = require('./routes/checkSessionRoutes');
 const paymentRoutes = require("./routes/paymentRoutes");
 const filterRoutes = require("./routes/filter");
+const adminRoutes = require("./routes/adminRoutes");
+const userActivityRoutes = require('./routes/userActivityRoutes');
 app.use('/api/flights', flightRoutes);
 app.use('/api/auth', checkSessionRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/filter', filterRoutes);
-
-// Static files for the public folder
-app.use(express.static(path.join(__dirname, 'public')));
+app.use("/admin", adminRoutes);
+app.use("/user-activity", userActivityRoutes);
 
 // Setup Handlebars as the view engine
 app.set('views', path.join(__dirname, 'templates'));
+app.engine('hbs', require('express-handlebars').engine({ extname: 'hbs', defaultLayout: false }));
 app.set('view engine', 'hbs');
 
 // Define routes for rendering HTML pages
@@ -55,6 +58,8 @@ app.get('/booking', (req, res) => res.render('booking'));
 app.get('/payment', (req, res) => res.render('payment'));
 app.get('/about', (req, res) => res.render('about'));
 app.get('/contact', (req, res) => res.render('contact'));
+app.get('/dashboard', (req, res) => res.render('dashboard', { layout: false }));
+app.get("/userActivity", (req, res) => res.render("userActivity", { layout: false }));
 
 // Root route
 app.get('/', (req, res) => {

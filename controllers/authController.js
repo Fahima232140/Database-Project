@@ -118,7 +118,7 @@ const login = async (req, res) => {
         res.json({
             success: true,
             accessToken,
-            redirectUrl: "/booking", // ✅ Redirect user to booking page
+            redirectUrl: "/dashboard", // ✅ Redirect user to booking page
         });
 
     } catch (error) {
@@ -219,8 +219,6 @@ const sendVerificationEmail = async (userEmail, token) => {
         console.error("❌ Email sending failed:", error);
     }
 };
-
-
 
 module.exports = { 
     signupUser, 

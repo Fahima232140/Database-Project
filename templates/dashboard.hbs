@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('/images/img1.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        .title {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: #ffcc00;
+            text-shadow: 0 4px 10px rgba(255, 102, 0, 0.5);
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .options a {
+            display: block;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            background-color: #ff6600;
+            transition: 0.3s ease-in-out;
+        }
+        .options a:hover {
+            background-color: #ffcc00;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Welcome, {{user.name}} 👋</h1>
+        <p class="subtitle">Choose an option below:</p>
+        
+        <div class="options">
+            <a href="/search-flights">✈️ Search Flights</a>
+            <a href="/userActivity">👤 My Dashboard</a>
+        
+
+            {{#if user.isAdmin}}
+            <a href="/admin-panel">🛠️ Admin Panel</a>
+            {{/if}} 
+
+            <a href="/login">🚪 Logout</a>
+        </div>
+    </div>
+    <script>
+    fetch("http://localhost:3000/dashboard", {
+    method: "GET",
+    headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error(error));
+</scipt>
+</body>
+</html>
+
